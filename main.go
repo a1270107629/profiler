@@ -6,9 +6,20 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+type Pair struct {
+	k string
+	v int
+}
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Less(i, j int) bool { return p[i].v > p[j].v }
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -45,12 +56,14 @@ func main() {
 		}
 		comm := sysSpit[:i]
 
-		if value, ok := m[comm]; ok {
-			m[comm] = value + time
-		} else {
-			m[comm] = time
-		}
+		m[comm] += time
 	}
-
-	fmt.Println(m)
+	p := make(PairList, len(m))
+	i := 0
+	for k, v := range m {
+		p[i] = Pair{k, v}
+		i++
+	}
+	sort.Sort(p)
+	fmt.Println(p)
 }
