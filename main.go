@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -39,24 +40,25 @@ func main() {
 	errStr := stderr.String()
 	sysSpits := strings.Split(errStr, "\n")
 	m := make(map[string]int, 0)
-	for i, sysSpit := range sysSpits {
-		fmt.Println(sysSpit)
-		if i == len(sysSpits)-1 {
-			break
+	re, err := regexp.Compile(`(.*?)\(.*\).*?=.*?<(\d*)\.(\d*)>`)
+	if err != nil {
+		return
+	}
+	for _, sysSpit := range sysSpits {
+		// fmt.Println(sysSpit)
+		//  (.*?)\(.*\).*?=.*?<(\d*)\.(\d*)>
+		found := re.MatchString(sysSpit)
+		if !found {
+			continue
 		}
-		time, err := strconv.Atoi(sysSpit[len(sysSpit)-7 : len(sysSpit)-1])
+		parts := re.FindStringSubmatch(sysSpit)
+		// time, err := strconv.Atoi(sysSpit[len(sysSpit)-7 : len(sysSpit)-1])
+		time, err := strconv.Atoi(parts[2] + parts[3])
 		if err != nil {
 			continue
 		}
-		i := 0
-		for ; i < len(sysSpit); i++ {
-			if sysSpit[i] == '(' {
-				break
-			}
-		}
-		comm := sysSpit[:i]
-
-		m[comm] += time
+		fmt.Println(parts[1], time)
+		m[parts[1]] += time
 	}
 	p := make(PairList, len(m))
 	i := 0
